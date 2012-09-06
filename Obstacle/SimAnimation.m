@@ -1,7 +1,10 @@
 function G = SimAnimation(env,G,x,u)
 
+    addpath([docroot '/techdoc/creating_plots/examples']);
+    % adds data position function
+
     E               = env.E;
-    structE         = {};
+    structE         = struct;
     structE.w       = E.tw;
     structE.l       = E.tl;
     trailer_pts     = GetBox(structE,x(1:3));
@@ -18,7 +21,7 @@ function G = SimAnimation(env,G,x,u)
     cab_back        = (cab_pts(1,:) + cab_pts(4,:))/2;
     trailer_front   = (trailer_pts(2,:) + trailer_pts(3,:))/2;
     wheel_angle     = u + x(4);
-
+    
     CostSurfaceFn   = @(x1,x2) sqrt((x1/100).^2 + (x2/100).^2);
     relf            = env.O.rel_cost;
     
@@ -33,9 +36,11 @@ function G = SimAnimation(env,G,x,u)
         clf(G.fig);
         
         set(G.fig,'NumberTitle','off','DoubleBuffer','on',...
-            'BackingStore','on','Renderer','Painters',...
+            'BackingStore','on','Renderer','zbuffer',...
             'toolbar','none','menubar','none',...
-            'Name','Truck Backer-Upper','Position',[1, 1, 650, 650]);
+            'Name','Hierarchical Neural Control','Position',[500, 200, 750, 750]);
+        set(G.fig,'PaperPositionMode','auto');
+        set(gca,'Position',[0 0 1 1]);        
 
         xd              = -500:5:500;
         [xs,ys]         = meshgrid(xd,xd);
@@ -65,7 +70,7 @@ function G = SimAnimation(env,G,x,u)
         uistack(G.goal,'bottom');
         
         G.obstacles     = [];
-        G               = DrawObstacles(E,G,E.disk,15);
+        G               = DrawObstacles(E,G,E.disk,100);
         G.left_wheel    = line([cab_pts(3,1)-cos(wheel_angle);cab_pts(3,1)+cos(wheel_angle)],...
                                 [cab_pts(3,2)-sin(wheel_angle);cab_pts(3,2)+sin(wheel_angle)],...
                                 'LineWidth',3,'Color','black');
@@ -75,8 +80,8 @@ function G = SimAnimation(env,G,x,u)
         G.trailer       = patch(trailer_pts(1:5,1),trailer_pts(1:5,2),[0 1 0]);
         G.link          = line([cab_back(1);trailer_front(1)],[cab_back(2);trailer_front(2)],'LineWidth',3,'Color','magenta');
         G.cab           = patch(cab_pts(1:5,1),cab_pts(1:5,2),[1 0 1]);
-        G.plan          = text([0],[0],'.','FontSize',75,...
-                                'Color',[1 0 0]);
+        G.plan          = patch(zeros(5,1),zeros(5,1),[1 0.9 0.9]);
+                            
         G.lineplan      = line('LineWidth',2,'Color','m');
                                                         
         for i=1:env.O.mapN
@@ -91,7 +96,8 @@ function G = SimAnimation(env,G,x,u)
                             G.cab;G.plan];
                         
         uistack(G.beam,'up'); 
-        uistack(G.trucks,'top');  
+        uistack(G.trucks,'top'); 
+        uistack(G.plan,'top');
         uistack(G.contour,'bottom');        
                 
     else
@@ -124,7 +130,7 @@ function G = SimAnimation(env,G,x,u)
             end
             
             set(G.contour,'Zdata',C');
-            G   = DrawObstacles(E,G,E.disk,15);            
+            G   = DrawObstacles(E,G,E.disk,100);            
             
         end
         

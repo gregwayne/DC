@@ -113,10 +113,9 @@ function logging = GameMain(gameName)
                 if simdisp_on
                     
                     % Draw Simulation
-                    G   = SimAnimation(env, G, x, m1);                    
-                    if strcmp(gameName,'Obstacle')
-                        subgoal = ConvertBearingToAbsolutePosition(E,m2,x);
-                        set(G.plan,'position',subgoal);  
+                    G   = SimAnimation(env, G, x, m1);
+                    DrawSubgoal(env,G,m2,x);
+                    if strcmp(gameName,'Obstacle')                                                                        
                         if ~isempty(G.lineplan)
                             delete(G.lineplan);
                             G.lineplan = [];

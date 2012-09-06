@@ -7,12 +7,12 @@ G           = [];
 
 M           = zeros(3+2+env.O.mapN,nex*siml);
 V           = zeros(3,nex*siml);
-NS          = 8; % number of stages
+NS          = 10; % number of stages
 
 addpath ../minFunc/;
 options.Method      = 'lbfgs'; 
-options.maxIter     = 1e4;
-options.maxFunEvals = 1e4;
+options.maxIter     = 1e5;
+options.maxFunEvals = 1e5;
 options.display     = 'off';
 warning off;
 
@@ -94,21 +94,24 @@ for k=1:nex
                 ys(:,t) = y;      
                 y_fic   = SimDynamics(env,y_fic,u,env.O.simCoarse);
                 y       = SimDynamics(env,y,u,env.O.simCoarse);
-            end            
+            end
+            
         end
         
         if show_on
-            
-            subgoal     = ConvertBearingToAbsolutePosition(env.E,p,y0);
+
+            G           = SimAnimation(env, G, ys(:,1), us(:,1));  
+            DrawSubgoal(env,G,p,y0);
+            set(G.lineplan,'XData',yplan(1,:));
+            set(G.lineplan,'YData',yplan(2,:));            
+
             for t=1:env.O.periods
                 map                             = zeros(env.O.mapN,1);
                 [map,env.E.obstacles_detected]  = ShootBeams(env,y,map,1); 
                 G           = SimAnimation(env, G, ys(:,t), us(:,t));   
-                set(G.plan,'position',subgoal);
-                set(G.lineplan,'XData',yplan(1,:));
-                set(G.lineplan,'YData',yplan(2,:));
                 drawnow;
             end
+            
         end
                       
         M(:,(k-1)*siml + ss) = [psense0;gsense0;osense0];

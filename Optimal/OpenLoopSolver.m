@@ -11,8 +11,8 @@ G       = [];
 
 addpath minFunc/;
 options.Method      = 'lbfgs'; 
-options.maxIter     = 1000;
-options.maxFunEvals = 1000;
+options.maxIter     = 1e5;
+options.maxFunEvals = 1e5;
 options.display     = 'off';
 warning off;
     

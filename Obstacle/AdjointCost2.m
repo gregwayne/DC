@@ -142,6 +142,6 @@ end
 
 function loss = LossGoal(gsense)
 
-    loss = gsense(1) + (gsense(2)-0)^2 + (gsense(3)-1)^2;
+    loss = gsense(1);
 
 end

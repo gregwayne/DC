@@ -1,4 +1,4 @@
-siml    = 15;
+siml    = 10;
 
 addpath '../Models/';
 addpath '../Obstacle/';
@@ -13,10 +13,10 @@ addpath minFunc/;
 options.Method      = 'lbfgs'; 
 options.maxIter     = 1e5;
 options.maxFunEvals = 1e5;
-options.display     = 'off';
+options.display     = 'on';
 warning off;
     
-if 1
+if 0
     
     theta   = rand;
     px      = cos(theta);

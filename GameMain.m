@@ -16,6 +16,9 @@ function logging = GameMain(gameName)
     global G;
     G       = [];    
     logging = {};
+    writerObj = VideoWriter(strcat('Figures/movie',date),'Motion JPEG AVI');
+    writerObj.FrameRate = 60;
+    open(writerObj);    
     
     %% Counters
     gameTerminatorCnt   = TimeCounter(env.O.max_steps);
@@ -37,7 +40,10 @@ function logging = GameMain(gameName)
             map                 = zeros(env.O.mapN,1);
             obs_delta           = bsxfun(@minus,env.E.obstacles,x(1:2));
             obs_dists           = sqrt(sum(obs_delta.^2,1));
-            if min(obs_dists) < env.E.disk
+            obs_goal_dists      = sqrt(sum(env.E.obstacles.^2,1));
+            if (min(obs_dists) <= (env.E.disk + env.E.tl + 1)) ...
+                || (min(obs_goal_dists) <= 2*env.E.disk + 1)
+                
                 % inside disk
                 trial = trial - 1;
                 continue;
@@ -54,27 +60,32 @@ function logging = GameMain(gameName)
             t_step = t_step + 1;
             
             if quit_sim
-                close all;
+                if get(uictrls.movietoggle,'Value')
+                    close(writerObj);  
+                end
+                
+                close all;                
                 break;
             end
             
             if new_sim
+                gameTerminatorCnt(1);  
                 new_sim = 0;
                 break;
             end
                         
             %% Simulation Code Here
             if gameTerminatorCnt(0) || TerminateCondition(env.E, x)
-                gameTerminatorCnt(1);
+                gameTerminatorCnt(1);  
                 break;
             end
                                     
                 switch gameName 
                     
                     case 'Obstacle'
-                        psense      = SenseProprioceptive(x);
-                        gsense      = SenseGoal(x);        
-                        osense      = SenseObstacles(env,x);
+                        psense  = SenseProprioceptive(x);
+                        gsense  = SenseGoal(x);        
+                        osense  = SenseObstacles(env,x);
                         
                         m2      = FProp(hcontroller,[psense;gsense;osense]);                        
                         x_fic   = ConvertBearingToVirtualPosition(env.E,m2,x);
@@ -95,8 +106,8 @@ function logging = GameMain(gameName)
                 logging{trial}{2}(:,t_step) = x;
                 logging{trial}{3}(:,t_step) = m1;               
 
-                x       = SimDynamics(env,x,m1,env.O.simCoarse);
-                                                
+                x       = SimDynamics(env,x,m1,1);
+                %x       = SimDynamics(env,x,m1,env.O.simCoarse);                                                
                       
             jiggle_on = get(uictrls.jiggletoggle,'Value');
             if strcmp(gameName,'Obstacle') && jiggle_on
@@ -125,6 +136,11 @@ function logging = GameMain(gameName)
                 end
                                                 
                 drawnow;
+                if get(uictrls.movietoggle,'Value')
+                    set(0,'CurrentFigure',G.fig);
+                    writeVideo(writerObj,getframe);
+                end
+                
 
             end 
                                                     

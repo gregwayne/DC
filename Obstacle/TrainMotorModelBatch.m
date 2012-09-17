@@ -1,21 +1,12 @@
 close all;
 addpath ..;
-addpath ../Truck;
 MakeParameters;
 rng('shuffle');
-
-if 1
-    load 'pforward.mat';
-    load 'gforward.mat';
-    load 'oforward.mat';
-    load 'ocdecoder.mat';
-    load 'lcontroller.mat';
-end
 
 if 0
     hcontroller = FFNet(3+2+env.O.mapN,200,3);
 else
-    load 'hcontroller.mat';
+    load '../Models/hcontroller.mat';
 end
     
 batches = 1e4;
@@ -29,15 +20,15 @@ R = [];
 for btch=1:batches
     
     % these may be learning simultaneously
-    load 'pforward.mat';
-    load 'gforward.mat';
-    load 'oforward.mat';
-    load 'ocdecoder.mat';
-    load 'lcontroller.mat';
+    load '../Models/pforward.mat';
+    load '../Models/gforward.mat';
+    load '../Models/oforward.mat';
+    load '../Models/ocdecoder.mat';
+    load '../Models/lcontroller.mat';
     
     if 1
-        TrainMotorModel;
-        %TMMCloud;
+        %TrainMotorModel;
+        TMMParallel;
     end
     
     Q   = [Q,MF];

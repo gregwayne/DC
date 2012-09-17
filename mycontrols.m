@@ -12,9 +12,12 @@ newbutton      = uicontrol(uictrls.fig,'Style','pushbutton','Position',[50 40 15
 quitbutton      = uicontrol(uictrls.fig,'Style','pushbutton','Position',[220 40 150 20],...
             'String','Quit Simulation','Value',0,'Callback',{'quit_simulation'});
 jiggletoggle   = uicontrol(uictrls.fig,'Style','checkbox','Position',[150 10 150 20],...
-            'String','Jiggle Obstacles','Value',0);        
+            'String','Jiggle Obstacles','Value',0); 
+movietoggle   = uicontrol(uictrls.fig,'Style','checkbox','Position',[280 10 150 20],...
+            'String','Grab Movie','Value',0);          
         
 uictrls.simdisptoggle   = simdisptoggle;
 uictrls.newbutton       = newbutton;
 uictrls.quitbutton      = quitbutton;
 uictrls.jiggletoggle    = jiggletoggle;
+uictrls.movietoggle     = movietoggle;

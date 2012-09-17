@@ -13,7 +13,7 @@ addpath ../minFunc/;
 options.Method      = 'lbfgs'; 
 options.maxIter     = 1e5;
 options.maxFunEvals = 1e5;
-options.display     = 'off';
+options.display     = 'on';
 warning off;
 
 us  = zeros(1,env.O.periods);
@@ -57,15 +57,7 @@ for k=1:nex
 
         for t=1:NS
            
-            if ss==1
-                ps(:,t) = FProp(hcontroller,[psense;gsense;osense]); 
-            else
-                if t < NS
-                    ps(:,t) = ps(:,t+1);
-                else
-                    ps(:,t) = FProp(hcontroller,[psense;gsense;osense]);
-                end
-            end                
+            ps(:,t)    = FProp(hcontroller,[psense;gsense;osense]);               
             
             psense     = FProp(pforward,[ps(:,t);psense]);            
             gsense     = FProp(gforward,[ps(:,t);psense;gsense]);
@@ -74,7 +66,7 @@ for k=1:nex
         end
         
         yorig       = y;
-        [ps,cst]    = minFunc(@(par) AdjointCost2(env,NS,3,par,...
+        [ps,cst]    = minFunc(@(par) AdjointCost(env,NS,3,par,...
                             psense0,gsense0,osense0,...
                             pforward,gforward,oforward,ocdecoder),...
                             ps(:),options);        

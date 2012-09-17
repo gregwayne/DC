@@ -26,9 +26,9 @@ options.maxIter     = 20;
 options.maxFunEvals = 1000;
 options.display     = 'off'; 
 
-nex = 5e4;
+nex = 1e5;
 
-load 'lcontroller.mat';
+load '../Models/lcontroller.mat';
 
 MP          = zeros(3+2,nex);
 VP          = zeros(2,nex);
@@ -62,26 +62,6 @@ for btch=1:batches
     gtheta          = gforward.GetTheta();
     otheta          = oforward.GetTheta();
     octheta         = ocdecoder.GetTheta();    
-
-%     load patterns_forward.mat; 
-         
-%     MPR             = [MPR,MP];
-%     VPR             = [VPR,VP];
-%     MGR             = [MGR,MG];
-%     VGR             = [VGR,VG];
-%     MOR             = [MOR,MO];
-%     VOR             = [VOR,VO];
-%     MCR             = [MCR,MC];
-%     VCR             = [VCR,VC];
-            
-%     [ptheta,cst]    = minFunc(@(par) FFCost(pforward,par,{MPR,VPR}),ptheta,options);
-%     csts(btch,1)    = cst;
-%     [gtheta,cst]    = minFunc(@(par) FFCost(gforward,par,{MGR,VGR}),gtheta,options);
-%     csts(btch,2)    = cst;
-%     [otheta,cst]    = minFunc(@(par) FFCost(oforward,par,{MOR,VOR}),otheta,options);    
-%     csts(btch,3)    = cst;    
-%     [octheta,cst]   = minFunc(@(par) FFCost(ocdecoder,par,{MCR,VCR}),octheta,options);    
-%     csts(btch,4)    = cst;
 
     [ptheta,cst]    = minFunc(@(par) FFCost(pforward,par,{MP,VP}),ptheta,options);
     csts(btch,1)    = cst;

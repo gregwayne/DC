@@ -9,7 +9,7 @@ function [Jx,Ju] = NumericalGradient(L,x0,u0)
     Jx  = zeros(1,nx);
     Ju  = zeros(1,nu);
             
-    for i=1:nx
+    parfor i=1:nx
         
         xu   = x0;
         xl   = x0;
@@ -21,7 +21,7 @@ function [Jx,Ju] = NumericalGradient(L,x0,u0)
         
     end
         
-    for i=1:nu
+    parfor i=1:nu
         
         uu   = u0;
         ul   = u0;

@@ -1,4 +1,5 @@
-function [cst,grad] = AdjointCost(env,LT,NM,ms,psense,gsense,osense,pforward,gforward,oforward,ocdecoder,rels)
+function [cst,grad] = AdjointCost(env,LT,NM,ms,psense,gsense,osense,...
+            pforward,gforward,oforward,ocdecoder)
 
     % Define data structures for forward and backward computations
     ms          = reshape(ms,[NM,LT]);
@@ -14,11 +15,7 @@ function [cst,grad] = AdjointCost(env,LT,NM,ms,psense,gsense,osense,pforward,gfo
     psenses(:,1) = psense;
     gsenses(:,1) = gsense;
     osenses(:,1) = osense;
-    
-    delps       = zeros(NP,1);
-    delgs       = zeros(NG,1);
-    delos       = zeros(NO,1);    
-    
+         
     gradms      = zeros(NM,LT);
     gradpsenses = zeros(NP,LT+1);
     gradgsenses = zeros(NG,LT+1);
@@ -29,12 +26,10 @@ function [cst,grad] = AdjointCost(env,LT,NM,ms,psense,gsense,osense,pforward,gfo
     ohids       = zeros(oforward.N1,env.O.mapN,LT);
         
     % Define Loss Functions with Parameters
-    relg        = rels(1);
-    relo        = rels(2);
     LossMotFn   = @(mot,nil) LossMot(mot);
     LossPropFn  = @(psense,nil) LossProp(psense);
-    LossGoalFn  = @(gsense,nil) relg*LossGoal(gsense);
-    LossObsFn   = @(osense,nil) relo*FProp(ocdecoder,osense);
+    LossGoalFn  = @(gsense,nil) LossGoal(gsense);
+    LossObsFn   = @(osense,nil) env.O.rel_cost*FProp(ocdecoder,osense);
     LossAllFn   = @(mot,psense,gsense,osense,rosense,nil) (LossPropFn(psense) ...
                                             + LossGoalFn(gsense) ...
                                             + LossObsFn(osense) ...
@@ -44,12 +39,7 @@ function [cst,grad] = AdjointCost(env,LT,NM,ms,psense,gsense,osense,pforward,gfo
     pidxs   = (NM+1):(NM+NP);
     gidxs   = (NM+NP+1):(NM+NP+NG);
     oidxs   = (NM+NP+1):(NM+NP+NO);   
-    
-    % For model error minimization
-    rpsenses    = zeros(size(psenses));
-    rgsenses    = zeros(size(gsenses));
-    rosenses    = zeros(size(osenses));
-                   
+        
     cst     = 0;
                                                 
     % Forward Pass    
@@ -60,8 +50,7 @@ function [cst,grad] = AdjointCost(env,LT,NM,ms,psense,gsense,osense,pforward,gfo
         gradms(:,t)     = NumericalGradient(LossMotFn,mot,[]);
         
         %% Proprioceptive Model
-        delps   = FProp(pforward,[mot;psenses(:,t)]);
-        psenses(:,t+1) = psenses(:,t) + delps;
+        psenses(:,t+1)  = FProp(pforward,[mot;psenses(:,t)]);
                 
         % store hidden unit values
         phids(:,t) = pforward.r1;
@@ -70,32 +59,29 @@ function [cst,grad] = AdjointCost(env,LT,NM,ms,psense,gsense,osense,pforward,gfo
         gradpsenses(:,t+1) = NumericalGradient(LossPropFn,psenses(:,t+1),[]);
         
         %% Goal Model
-        delgs   = FProp(gforward,[mot;psenses(:,t);gsenses(:,t)]);
-        gsenses(:,t+1) = gsenses(:,t) + delgs;
+        gsenses(:,t+1) = FProp(gforward,[mot;psenses(:,t);gsenses(:,t)]);
         
         % store hidden unit values
         ghids(:,t) = gforward.r1;        
                 
         % instantaneous gradient
-        gradgsenses(:,t+1) = relg*NumericalGradient(LossGoalFn,gsenses(:,t+1),[]);
+        gradgsenses(:,t+1) = NumericalGradient(LossGoalFn,gsenses(:,t+1),[])';        
         
         %% Obstacle Model        
-        delos          = FProp(oforward,[mot;psenses(:,t);osenses(:,t)]);
-        osenses(:,t+1) = osenses(:,t) + delos;
+        osenses(:,t+1) = FProp(oforward,[mot;psenses(:,t);osenses(:,t)]);
         
         % store hidden unit values
         ohids(:,t) = oforward.r1;
         
         % instantaneous gradient
         FProp(ocdecoder,osenses(:,t+1));
-        gradosenses(:,t+1) = relo*BProp(ocdecoder,1);
-        
+        gradosenses(:,t+1) = env.O.rel_cost*BProp(ocdecoder,1);
+                
         %% Calculate Total Cost
-        cst = cst + LossAllFn(mot,psenses(:,t+1),gsenses(:,t+1),...
-                                osenses(:,t+1),[]);
+        cst = cst + LossAllFn(mot,psenses(:,t+1),gsenses(:,t+1),osenses(:,t+1),[]);
                 
     end
-              
+                  
     % Backward Pass    
     for t=(LT+1):-1:2
         
@@ -112,13 +98,13 @@ function [cst,grad] = AdjointCost(env,LT,NM,ms,psense,gsense,osense,pforward,gfo
         gradms(:,t-1)       = gradms(:,t-1) ...
                                 + dbp(midxs) + dbg(midxs) + dbo(midxs);
         
-        gradpsenses(:,t-1)  = gradpsenses(:,t-1) + gradpsenses(:,t) ...
+        gradpsenses(:,t-1)  = gradpsenses(:,t-1) ...
                                 + dbp(pidxs) + dbg(pidxs) + dbo(pidxs);
 
-        gradgsenses(:,t-1)  = gradgsenses(:,t-1) + gradgsenses(:,t) ...
+        gradgsenses(:,t-1)  = gradgsenses(:,t-1) ...
                                 + dbg(gidxs);
                                                    
-        gradosenses(:,t-1)  = gradosenses(:,t-1) + gradosenses(:,t) ...
+        gradosenses(:,t-1)  = gradosenses(:,t-1) ...
                                 + dbo(oidxs);
         
     end
@@ -139,12 +125,12 @@ function loss = LossMot(mot)
     mot1lb  = 0.1;
     mot1ub  = 0.9;
     if mot(1) < mot1lb
-        loss = loss + 10*(mot(1) - mot1lb)^2;
+        loss = loss + 100*(mot(1) - mot1lb)^2;
     elseif mot(1) > mot1ub
-        loss = loss + 10*(mot(1) - mot1ub)^2;
+        loss = loss + 100*(mot(1) - mot1ub)^2;
     end
     
-    loss = loss + 10*(norm(mot(2:3))^2 - 1)^2;
+    loss = loss + 100*(norm(mot(2:3))^2 - 1)^2;
 
 end
 

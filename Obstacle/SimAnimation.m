@@ -42,7 +42,7 @@ function G = SimAnimation(env,G,x,u)
         set(G.fig,'PaperPositionMode','auto');
         set(gca,'Position',[0 0 1 1]);        
 
-        xd              = -500:5:500;
+        xd              = -800:10:800;
         [xs,ys]         = meshgrid(xd,xd);
 
         C   = bsxfun(CostSurfaceFn,xd,xd');
@@ -114,7 +114,7 @@ function G = SimAnimation(env,G,x,u)
                     
         if movep % obstacle has moved      
             
-            xd  = -500:5:500;
+            xd  = -800:10:800;
             xs  = get(G.contour,'Xdata');
             ys  = get(G.contour,'Ydata');       
             

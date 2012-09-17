@@ -12,7 +12,7 @@ function [Jx,Ju] = NumericalJacobian(Forward,x0,u0)
     Jx  = zeros(nx,nx);
     Ju  = zeros(nx,nu);
     
-    for i=1:nx
+    parfor i=1:nx
         
         xu   = x0 + eps*esx(:,i);
         xl   = x0 - eps*esx(:,i);
@@ -21,7 +21,7 @@ function [Jx,Ju] = NumericalJacobian(Forward,x0,u0)
         
     end
     
-    for i=1:nu
+    parfor i=1:nu
         
         uu   = u0 + eps*esu(:,i);
         ul   = u0 - eps*esu(:,i);

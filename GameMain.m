@@ -1,9 +1,10 @@
 function logging = GameMain(gameName)
                                   
     %% Globals
-    global quit_sim new_sim;
-    quit_sim = 0;
-    new_sim  = 0;
+    global quit_sim new_sim record_sim;
+    quit_sim    = 0;
+    new_sim     = 0;
+    record_sim  = 0;
     
     global env;
     global E;
@@ -14,11 +15,9 @@ function logging = GameMain(gameName)
 
     %% Graphics and Recording
     global G;
-    G       = [];    
-    logging = {};
-    writerObj = VideoWriter(strcat('Figures/movie',date),'Motion JPEG AVI');
-    writerObj.FrameRate = 60;
-    open(writerObj);    
+    G           = [];    
+    logging     = {};
+    recording   = 0;
     
     %% Counters
     gameTerminatorCnt   = TimeCounter(env.O.max_steps);
@@ -60,7 +59,7 @@ function logging = GameMain(gameName)
             t_step = t_step + 1;
             
             if quit_sim
-                if get(uictrls.movietoggle,'Value')
+                if recording
                     close(writerObj);  
                 end
                 
@@ -106,7 +105,7 @@ function logging = GameMain(gameName)
                 logging{trial}{2}(:,t_step) = x;
                 logging{trial}{3}(:,t_step) = m1;               
 
-                x       = SimDynamics(env,x,m1,1);
+                x       = SimDynamics(env,x,m1,max(1,ceil(get(uictrls.speedslider,'Value'))));
                 %x       = SimDynamics(env,x,m1,env.O.simCoarse);                                                
                       
             jiggle_on = get(uictrls.jiggletoggle,'Value');
@@ -135,13 +134,21 @@ function logging = GameMain(gameName)
                     
                 end
                                                 
+                if record_sim
+                    [fname, pname]  = uiputfile('*.avi');
+                    writerObj       = VideoWriter(strcat(pname,fname),'Motion JPEG AVI');
+                    writerObj.FrameRate = 60;
+                    open(writerObj);
+                    record_sim      = false;
+                    recording       = 1;
+                end
                 drawnow;
-                if get(uictrls.movietoggle,'Value')
+
+                if recording
                     set(0,'CurrentFigure',G.fig);
                     writeVideo(writerObj,getframe);
                 end
                 
-
             end 
                                                     
         end

@@ -2,8 +2,9 @@ opts                = struct;
 opts.rng            = [];
 opts.max_trials     = 100;
 opts.max_steps      = 5000;
-opts.memory_based   = 1;
+opts.memory_based   = 0;
 opts.single_arena   = 1;
+opts.siml           = 8;
 
 [results, opts]     = RunTest(opts);
 logging             = results.logging;

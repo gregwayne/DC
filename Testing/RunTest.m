@@ -49,7 +49,7 @@ function [results,options] = RunTest(options)
     while trial <= options.max_trials
         trial           = trial + 1;
         
-        t_step          = 0;
+        t_step          = 1;
         logging{trial}  = {env,zeros(4,1e4),...
                             zeros(1,1e4),0};
         trailer = 600*[(rand-0.5);(rand-0.5);2*pi*rand];        
@@ -84,8 +84,6 @@ function [results,options] = RunTest(options)
         end
                 
         while 1 
-
-            t_step = t_step + 1;
 
             %% Simulation Code Here
             if ((t_step > options.max_steps) ...
@@ -143,8 +141,10 @@ function [results,options] = RunTest(options)
                 
             end
             
+            t_step = t_step + 1;
+            
         end
-         
+                 
     end
     
     results.logging     = logging;

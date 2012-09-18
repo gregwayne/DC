@@ -21,7 +21,6 @@ function [results,options] = RunTest(options)
     optPars.Method      = 'lbfgs'; 
     optPars.maxIter     = 1e5;
     optPars.maxFunEvals = 1e5;
-    %optPars.TolX        = 1e-4;
     optPars.display     = 'on';
     warning off;
         
@@ -32,7 +31,7 @@ function [results,options] = RunTest(options)
         while 1
             [env,x]             = init_sim(env);
             obs_goal_dists      = sqrt(sum(env.E.obstacles.^2,1));
-            if (min(obs_goal_dists) > 2*env.E.disk + 1) 
+            if (min(obs_goal_dists) > 2*env.E.disk + 1)
                 break;
             end
         end
@@ -41,19 +40,17 @@ function [results,options] = RunTest(options)
         axis([-500 500 -500 500]);
         drawnow;
         close all;
-    else
+    else        
         results.envs = {};
     end
-    
+
     trial = 0;
-    while trial <= options.max_trials
-        trial           = trial + 1;
-        
+    while trial <= options.max_trials     
+       trial           = trial + 1;
+    
         t_step          = 1;
         logging{trial}  = {env,zeros(4,1e4),...
                             zeros(1,1e4),0};
-        trailer = 600*[(rand-0.5);(rand-0.5);2*pi*rand];        
-        x       = [trailer;trailer(3)+(rand-0.5)*pi/2];
                         
         if ~options.single_arena
             while 1
@@ -63,32 +60,43 @@ function [results,options] = RunTest(options)
                 
                 obs_goal_dists      = sqrt(sum(env.E.obstacles.^2,1));
                 if (min(obs_goal_dists) > 2*env.E.disk + 1) ...
-                    && min(obs_dists) >= (env.E.disk + env.E.tl + 1)
+                    && min(obs_dists) >= (env.E.disk + env.E.tl + 1) ...
+                    && ~TerminateCondition(env.E,x)
+                
                     break;
                 end
-                trailer = 600*[(rand-0.5);(rand-0.5);2*pi*rand];        
-                x       = [trailer;trailer(3)+(rand-0.5)*pi/2];
+
             end
             
             results.envs{trial} = env;
         else
         
-            obs_delta           = bsxfun(@minus,env.E.obstacles,x(1:2));
-            obs_dists           = sqrt(sum(obs_delta.^2,1));
-            if min(obs_dists) <= (env.E.disk + env.E.tl + 1)
-                % inside disk
-                trial = trial - 1;
-                continue;
+            while 1
+                obs_delta           = bsxfun(@minus,env.E.obstacles,x(1:2));
+                obs_dists           = sqrt(sum(obs_delta.^2,1));
+                if min(obs_dists) <= (env.E.disk + env.E.tl + 1) ...
+                        || TerminateCondition(env.E,x)
+                    [env,x]        = init_sim(env);
+                else
+                    break;
+                end
             end
             
         end
+        
+        t_step = 0;
                 
         while 1 
+            
+            t_step      = t_step + 1;
 
+            logging{trial}{2}(:,t_step) = x;
+            
             %% Simulation Code Here
             if ((t_step > options.max_steps) ...
                     || TerminateCondition(env.E,x));
-                logging{trial}{4}  = t_step - 1;
+                
+                logging{trial}{4}  = t_step;
                 break;
             end                                    
 
@@ -103,19 +111,13 @@ function [results,options] = RunTest(options)
                 ix      = InternalState(x_fic);
 
                 m1      = lcontroller.FProp(ix);
-                
-                logging{trial}{2}(:,t_step) = x;
-                logging{trial}{3}(:,t_step) = m1;   
-                
+                                
                 x       = SimDynamics(env,x,m1,1);                
          
             elseif options.memory_based == 2
                 
                 ix      = InternalState(x);
                 m1      = lcontroller.FProp(ix);
-
-                logging{trial}{2}(:,t_step) = x;
-                logging{trial}{3}(:,t_step) = m1;  
                 
                 x       = SimDynamics(env,x,m1,1);                                  
                 
@@ -141,8 +143,8 @@ function [results,options] = RunTest(options)
                 
             end
             
-            t_step = t_step + 1;
-            
+            logging{trial}{3}(:,t_step) = m1;   
+                        
         end
                  
     end

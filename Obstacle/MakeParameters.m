@@ -17,7 +17,7 @@ O.simCoarse     = 6;
 O.periods       = 15;
 O.rel_cost      = 10;
 
-E.nobstacles    = 20; % was 20
+E.nobstacles    = 40; % was 20
 E.jiggle_rate   = 1;
 E.obstacles_detected = [];
 

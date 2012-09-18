@@ -1,7 +1,7 @@
 opts                = struct;
 opts.rng            = [];
 opts.max_trials     = 100;
-opts.max_steps      = 30000;
+opts.max_steps      = 3000;
 opts.memory_based   = 1;
 opts.single_arena   = 0;
 

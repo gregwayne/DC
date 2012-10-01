@@ -4,7 +4,7 @@ MakeParameters;
 rng('shuffle');
 
 if 0
-    hcontroller = FFNet(3+2+env.O.mapN,200,3);
+    hcontroller = FFNet(3+2+env.O.mapN,100,3);
 else
     load '../Models/hcontroller.mat';
 end

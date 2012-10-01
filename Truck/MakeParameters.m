@@ -12,7 +12,7 @@ E.ucon          = 0.95;
 
 O               = struct;
 O.max_trial     = 1000;
-O.max_steps     = 1000;
+O.max_steps     = 10000;
 O.plot_every    = 6;
 O.simCoarse     = 6;
 O.periods       = 15;

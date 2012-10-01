@@ -1,11 +1,16 @@
-function [results,options] = RunTest(options)
+function [results,options] = RunTest(options,env)
 
     addpath('..');
     addpath('../Obstacle');
     addpath('../Optimal');
     
-    run ../Obstacle/MakeParameters;    
-
+    if isempty(env)
+        run ../Obstacle/MakeParameters;
+        if isfield(options,'nobstacles')
+            env.E.nobstacles = options.nobstacles;
+        end
+        env.E.obstacles = [];    
+    end
     results     = struct;
     
     if isempty(options.rng)
@@ -14,7 +19,9 @@ function [results,options] = RunTest(options)
     else        
         rng(options.rng);        
     end
-                 
+             
+    d_max               = 500;
+    
     run ../load_networks;
     Forward             = @(x,m) HForward(env,x,m,lcontroller);
     addpath('../minFunc/');
@@ -29,10 +36,12 @@ function [results,options] = RunTest(options)
     if options.single_arena
 
         while 1
-            [env,x]             = init_sim(env);
+            [env,x]             = init_sim(env,d_max);
             obs_goal_dists      = sqrt(sum(env.E.obstacles.^2,1));
             if (min(obs_goal_dists) > 2*env.E.disk + 1)
                 break;
+            else
+                env.E.obstacles = [];
             end
         end
     
@@ -45,39 +54,39 @@ function [results,options] = RunTest(options)
     end
 
     trial = 0;
-    while trial <= options.max_trials     
-       trial           = trial + 1;
-    
+    while trial < options.max_trials     
+        trial           = trial + 1;
+        disp(sprintf('Trial %d',trial));
+        
         t_step          = 1;
         logging{trial}  = {env,zeros(4,1e4),...
                             zeros(1,1e4),0};
                         
         if ~options.single_arena
             while 1
-                [env,x]             = init_sim(env);
+                env.E.obstacles     = [];
+                [env,x]             = init_sim(env,d_max);
                 obs_delta           = bsxfun(@minus,env.E.obstacles,x(1:2));
                 obs_dists           = sqrt(sum(obs_delta.^2,1));
                 
                 obs_goal_dists      = sqrt(sum(env.E.obstacles.^2,1));
                 if (min(obs_goal_dists) > 2*env.E.disk + 1) ...
-                    && min(obs_dists) >= (env.E.disk + env.E.tl + 1) ...
+                    && min(obs_dists) >= (env.E.disk + env.E.tl + 5) ...
                     && ~TerminateCondition(env.E,x)
                 
                     break;
                 end
-
             end
             
             results.envs{trial} = env;
         else
         
             while 1
+                [env,x]             = init_sim(env,d_max);
                 obs_delta           = bsxfun(@minus,env.E.obstacles,x(1:2));
                 obs_dists           = sqrt(sum(obs_delta.^2,1));
-                if min(obs_dists) <= (env.E.disk + env.E.tl + 1) ...
-                        || TerminateCondition(env.E,x)
-                    [env,x]        = init_sim(env);
-                else
+                if ~(min(obs_dists) <= (env.E.disk + env.E.tl + 5) ...
+                        || TerminateCondition(env.E,x))
                     break;
                 end
             end

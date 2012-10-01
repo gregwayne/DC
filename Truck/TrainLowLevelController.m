@@ -6,7 +6,7 @@ addpath '../minFunc/';
 addpath '../Optimal/';
 MakeParameters;
 
-Forward         = @(x,u) SimDynamics(env,x,u,O.simCoarse);
+Forward         = @(x,u) TruckDynamics(env,x,u,O.simCoarse);
 options.Method  = 'lbfgs'; 
 options.maxIter = 1000;	
 options.display = 'off'; 

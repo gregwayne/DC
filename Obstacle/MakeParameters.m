@@ -8,6 +8,9 @@ E.tl            = 14;
 E.r             = 0.2;
 E.nu            = 1;
 
+E.acon          = pi/2-pi/6;
+E.ucon          = 0.95;
+
 O               = struct;
 O.mapN          = 30; 
 O.max_trial     = 100;

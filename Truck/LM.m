@@ -1,4 +1,4 @@
-function L = L(E,m)
+function L = LM(E,m)
 
     L       = 0;
  

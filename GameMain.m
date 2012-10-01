@@ -29,23 +29,30 @@ function logging = GameMain(gameName)
             break;
         end
                     
-        [env,x] = init_sim(env);
+        if strcmp(gameName,'Obstacle')
+            env.E.obstacles = [];
+        end
+        [env,x]             = init_sim(env);
         
         disp(sprintf('Trial %d', trial));
                 
         t_step = 0;
         
         if strcmp(gameName,'Obstacle')
-            map                 = zeros(env.O.mapN,1);
-            obs_delta           = bsxfun(@minus,env.E.obstacles,x(1:2));
-            obs_dists           = sqrt(sum(obs_delta.^2,1));
-            obs_goal_dists      = sqrt(sum(env.E.obstacles.^2,1));
-            if (min(obs_dists) <= (env.E.disk + env.E.tl + 1)) ...
-                || (min(obs_goal_dists) <= 2*env.E.disk + 1)
-                
-                % inside disk
-                trial = trial - 1;
-                continue;
+            while 1
+                map                 = zeros(env.O.mapN,1);
+                obs_delta           = bsxfun(@minus,env.E.obstacles,x(1:2));
+                obs_dists           = sqrt(sum(obs_delta.^2,1));
+                obs_goal_dists      = sqrt(sum(env.E.obstacles.^2,1));
+                if ~((min(obs_dists) <= (env.E.disk + env.E.tl + 1)) ...
+                    || (min(obs_goal_dists) <= 2*env.E.disk + 1))
+
+                    % not inside disk
+                    break;
+                else
+                    env.E.obstacles     = [];
+                    [env,x]             = init_sim(env);
+                end
             end
         end
         
@@ -88,13 +95,13 @@ function logging = GameMain(gameName)
                         
                         m2      = FProp(hcontroller,[psense;gsense;osense]);                        
                         x_fic   = ConvertBearingToVirtualPosition(env.E,m2,x);
-                        ix      = InternalState(x_fic);
+                        ix      = InternalStateObstacle(x_fic);
                         
                         map     = zeros(env.O.mapN,1);
                         [map,env.E.obstacles_detected] = ShootBeams(env,x,map,1);
                                                 
                     case 'Truck'
-                        ix      = InternalState(x);
+                        ix      = InternalStateTruck(x);
                     otherwise
                         error('Unknown Game');
                         
@@ -105,9 +112,13 @@ function logging = GameMain(gameName)
                 logging{trial}{2}(:,t_step) = x;
                 logging{trial}{3}(:,t_step) = m1;               
 
-                x       = SimDynamics(env,x,m1,max(1,ceil(get(uictrls.speedslider,'Value'))));
-                %x       = SimDynamics(env,x,m1,env.O.simCoarse);                                                
-                      
+                if strcmp(gameName,'Obstacle')
+                    x       = SimDynamics(env,x,m1,max(1,ceil(get(uictrls.speedslider,'Value'))));
+                    %x       = SimDynamics(env,x,m1,env.O.simCoarse);                                                
+                else
+                    x       = TruckDynamics(env,x,m1,max(1,ceil(get(uictrls.speedslider,'Value'))));
+                end
+                    
             jiggle_on = get(uictrls.jiggletoggle,'Value');
             if strcmp(gameName,'Obstacle') && jiggle_on
 
@@ -123,14 +134,19 @@ function logging = GameMain(gameName)
                 if simdisp_on
                     
                     % Draw Simulation
-                    G   = SimAnimation(env, G, x, m1);
-                    DrawSubgoal(env,G,m2,x);
-                    if strcmp(gameName,'Obstacle')                                                                        
-                        if ~isempty(G.lineplan)
-                            delete(G.lineplan);
-                            G.lineplan = [];
-                        end
-                    end                   
+                    if strcmp(gameName,'Obstacle')
+                        G   = SimAnimation(env, G, x, m1);
+
+                        DrawSubgoal(env,G,m2,x);
+                        if strcmp(gameName,'Obstacle')                                                                        
+                            if ~isempty(G.lineplan)
+                                delete(G.lineplan);
+                                G.lineplan = [];
+                            end
+                        end     
+                    else
+                        G   = TruckAnimation(env, G, x, m1);
+                    end
                     
                 end
                                                 

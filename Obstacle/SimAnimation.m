@@ -59,7 +59,7 @@ function G = SimAnimation(env,G,x,u)
         [~,G.contour] = contourf(xs,ys,C'); 
         set(G.contour,'EdgeColor','none');
         axis square;
-        G.del=250;
+        G.del           = 200;
         axis([x(1)-G.del,x(1)+G.del,x(2)-G.del,x(2)+G.del]);
         axis off;
         
@@ -79,8 +79,8 @@ function G = SimAnimation(env,G,x,u)
                                 'LineWidth',3,'Color','black');
         G.trailer       = patch(trailer_pts(1:5,1),trailer_pts(1:5,2),[0 1 0]);
         G.link          = line([cab_back(1);trailer_front(1)],[cab_back(2);trailer_front(2)],'LineWidth',3,'Color','magenta');
-        G.cab           = patch(cab_pts(1:5,1),cab_pts(1:5,2),[1 0 1]);
-        G.plan          = patch(zeros(5,1),zeros(5,1),[1 0.9 0.9]);
+        G.cab           = patch(cab_pts(1:5,1),cab_pts(1:5,2),[1 0 1]);       
+        G.plan          = patch(zeros(5,1),zeros(5,1),[1 1 1]);
                             
         G.lineplan      = line('LineWidth',2,'Color','m');
                                                         

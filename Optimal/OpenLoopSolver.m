@@ -1,4 +1,4 @@
-siml    = 5;
+siml    = 10;
 
 addpath '../Models/';
 addpath '../Obstacle/';
